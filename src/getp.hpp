@@ -125,7 +125,7 @@ class ThreadPool {
         for (auto& t : _threads) t.join();
     }
 
-    unsigned get_n_workers() { return _count; }
+    unsigned get_num_workers() { return _count; }
 
     template <typename Func>
         requires std::is_invocable_v<Func> && std::is_invocable_r_v<void, Func>
@@ -157,7 +157,7 @@ class ThreadPool {
                                  Func&& func, unsigned n_blocks = 0) {
         assert(start_index < end_index);
         unsigned n_blocos =
-            !n_blocks ? get_n_workers() : std::max(1U, n_blocks);
+            !n_blocks ? get_num_workers() : std::max(1U, n_blocks);
         auto tf = TaskFutures{};
         size_t range_length = end_index - start_index;
         if (range_length > n_blocos) {
