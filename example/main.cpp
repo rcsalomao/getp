@@ -5,17 +5,6 @@
 
 #include "getp.hpp"
 
-using std::to_string;
-
-template <std::ranges::forward_range Rng>
-auto stringify(Rng&& seq) {
-    auto b = seq | std::ranges::views::transform([](const auto& a) {
-                 return to_string(a);
-             }) |
-             std::ranges::views::join_with(',') | std::ranges::views::common;
-    return "{" + std::string(std::begin(b), std::end(b)) + "}";
-};
-
 using namespace std::literals::chrono_literals;
 
 int main() {
@@ -59,7 +48,7 @@ int main() {
             tp.dispatch_on_loop(0, v.size(), [&v](size_t i) { v[i] += 42; });
         task_futures.wait();
 
-        std::print("v: {}\n", stringify(v));
+        std::print("v: {}\n", v);
     };
 
     {
@@ -78,8 +67,16 @@ int main() {
             });
         task_futures.wait();
 
-        std::print("v: {}\n", stringify(v));
+        std::print("v: {}\n", v);
         std::print("accum: {}\n", accum);
+    };
+
+    {
+        std::print("\n");
+        auto intervals = getp::utils::calc_intervals(0, 10, 4);
+        for (auto interval : intervals) {
+            std::print("{}\n", interval);
+        }
     };
 
     return 0;

@@ -14,6 +14,29 @@
 #include <type_traits>
 
 namespace getp {
+
+namespace utils {
+
+std::vector<std::pair<unsigned, unsigned>> calc_intervals(size_t start_index,
+                                                          size_t end_index,
+                                                          unsigned n_blocks) {
+    size_t range_length = end_index - start_index;
+    double dv = (double)range_length / n_blocks;
+    auto intervals =
+        std::views::iota(0U, n_blocks) |
+        std::views::transform([dv](unsigned i) {
+            return std::pair<unsigned, unsigned>{round(i * dv),
+                                                 round((i + 1) * dv)};
+        }) |
+        std::views::filter([](const std::pair<unsigned, unsigned>& interval) {
+            return interval.first < interval.second;
+        }) |
+        std::ranges::to<std::vector<std::pair<unsigned, unsigned>>>();
+    return intervals;
+}
+
+};  // namespace utils
+
 using Lock = std::unique_lock<std::mutex>;
 using Task = std::move_only_function<void()>;
 
@@ -156,38 +179,20 @@ class ThreadPool {
     TaskFutures dispatch_on_loop(size_t start_index, size_t end_index,
                                  Func&& func, unsigned n_blocks = 0) {
         assert(start_index < end_index);
-        unsigned n_blocos =
-            !n_blocks ? get_num_workers() : std::max(1U, n_blocks);
+        auto intervals = utils::calc_intervals(
+            start_index, end_index, !n_blocks ? get_num_workers() : n_blocks);
         auto tf = TaskFutures{};
-        size_t range_length = end_index - start_index;
-        if (range_length > n_blocos) {
-            double dv = (double)range_length / n_blocos;
-            auto intervals = std::views::iota(0U, n_blocos) |
-                             std::views::transform([dv](unsigned i) {
-                                 return std::pair<unsigned, unsigned>{
-                                     round(i * dv), round((i + 1) * dv)};
-                             });
-            for (auto interval : intervals) {
-                std::promise<void> p;
-                tf.push_back(p.get_future());
-                dispatch([interval, func = std::move(func),
-                          p = std::move(p)] mutable {
+        for (auto& interval : intervals) {
+            std::promise<void> p;
+            tf.push_back(p.get_future());
+            dispatch(
+                [interval, func = std::move(func), p = std::move(p)] mutable {
                     for (auto i :
                          std::views::iota(interval.first, interval.second)) {
                         func(i);
                     }
                     p.set_value();
                 });
-            }
-        } else {
-            for (auto i : std::views::iota(start_index, end_index)) {
-                std::promise<void> p;
-                tf.push_back(p.get_future());
-                dispatch([i, func = std::move(func), p = std::move(p)] mutable {
-                    func(i);
-                    p.set_value();
-                });
-            }
         }
         return tf;
     };
