@@ -17,9 +17,8 @@ namespace getp {
 
 namespace utils {
 
-std::vector<std::pair<unsigned, unsigned>> calc_intervals(size_t start_index,
-                                                          size_t end_index,
-                                                          unsigned n_blocks) {
+inline std::vector<std::pair<unsigned, unsigned>> calc_intervals(
+    size_t start_index, size_t end_index, unsigned n_blocks) {
     size_t range_length = end_index - start_index;
     double dv = (double)range_length / n_blocks;
     auto intervals =

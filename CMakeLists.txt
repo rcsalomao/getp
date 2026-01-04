@@ -2,16 +2,24 @@ cmake_minimum_required(VERSION 4.0.0)
 
 project(
     getp
-    DESCRIPTION "This is a project description."
+    DESCRIPTION "Good Enough Thread Pool (GETP). A concise thread pool header only library for C++."
     LANGUAGES CXX
 )
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_STANDARD 23)
-
 add_executable(
     main
+)
+
+target_sources(
+    main
+    PRIVATE
     example/main.cpp
+)
+
+target_compile_features(
+    main
+    PRIVATE
+    cxx_std_23
 )
 
 target_include_directories(
@@ -24,11 +32,13 @@ target_include_directories(
 target_compile_options(
     main
     PRIVATE
-    -fdiagnostics-color=always
     -Wall
     -Wextra
     -Og
     -march=native
+    -fdiagnostics-color=always
+    -fsanitize=address,undefined
+    -fdiagnostics-set-output=text:experimental-nesting=yes
 )
 
 target_link_directories(
@@ -41,6 +51,7 @@ target_link_libraries(
     main
     PRIVATE
     -pthread
+    -fsanitize=address,undefined
 )
 
 target_link_options(
