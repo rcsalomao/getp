@@ -25,7 +25,7 @@ target_compile_features(
 target_include_directories(
     main
     PRIVATE
-    ~/.local/include
+    ~/.local/include/
     src/
 )
 
@@ -38,23 +38,22 @@ target_compile_options(
     -march=native
     -fdiagnostics-color=always
     -fsanitize=address,undefined
-    -fdiagnostics-set-output=text:experimental-nesting=yes
 )
 
 target_link_directories(
     main
     PRIVATE
-    ~/.local/lib
+    ~/.local/lib/
 )
 
 target_link_libraries(
     main
     PRIVATE
     -pthread
-    -fsanitize=address,undefined
 )
 
 target_link_options(
     main
     PRIVATE
+    -fsanitize=address,undefined
 )
